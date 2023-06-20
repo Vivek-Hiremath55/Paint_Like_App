@@ -15,6 +15,7 @@ public:
 	double slopeFinder(DataBase::Edge line);
 	int sideIndicator(DataBase::Edge line1, DataBase::Edge line2);
 	void intersectionFinder(DataBase::Edge line1, DataBase::Edge line2);
+	void findIntersectionBetItems(DataBase::Item item1, DataBase::Item item2);
 	int parallelCheck(DataBase::Edge line1, DataBase::Edge line2);
 	int perpendicularCheck(DataBase::Edge line1, DataBase::Edge line2);
 	double roundUP(double target);

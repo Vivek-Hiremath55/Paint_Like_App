@@ -38,40 +38,84 @@ void OpenGLWindow::initializeGL()
 	shaderProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
 	shaderProgram->link();
 
-	shaderProgram->bind();
-	shaderProgram->setUniformValue("color", QVector4D(1.0f, 1.0f, 1.0f, 1.0f)); // White color
+	//shaderProgram->bind();
+	//shaderProgram->setUniformValue("color", QVector4D(1.0f, 1.0f, 1.0f, 1.0f)); // White color
+	//shaderProgram->setUniformValue("color", QVector4D(1.0f, 0.0f, 0.0f, 1.0f)); // White 
 }
 
 void OpenGLWindow::paintGL()
 {
 	glLoadIdentity();
+	shaderProgram->bind();
 
-	if (highlightMode) {
-		for (const auto& line : db.highlightList)
-		{
-			shaderProgram->setUniformValue("color", QVector4D(0.0f, 1.0f, 0.0f, 1.0f)); // Yellow 
-			glBegin(GL_LINES);
-			glVertex2f(line.startX, line.startY);
-			glVertex2f(line.endX, line.endY);
-			glEnd();
-
-		}
-		db.highlightList.clear();
-		highlightMode = false;
-		update();
-	}
-	else {
 		shaderProgram->setUniformValue("color", QVector4D(1.0f, 1.0f, 1.0f, 1.0f)); // White 
-		for (const auto& line : db.edgeList)
-		{
-			glBegin(GL_LINES);
-			glVertex2f(line.startX, line.startY);
-			glVertex2f(line.endX, line.endY);
-			glEnd();
+		for (const auto& item : itemList) {
+			for (const auto& line : item.itemEdgeList)
+			{
+				glBegin(GL_LINES);
+				glVertex2f(line.startX, line.startY);
+				glVertex2f(line.endX, line.endY);
+				glEnd();
+			}
 		}
-	}
 
+		// HighLight Intersection Point
+		// 
+		//for (const auto& line : db.edgeList)
+		//{
+		//	glBegin(GL_LINES);
+		//	glVertex2f(line.startX, line.startY);
+		//	glVertex2f(line.endX, line.endY);
+		//	glEnd();
+		//}
+		
+		
 
+		if (highlightMode) {
+			shaderProgram->bind();
+			shaderProgram->setUniformValue("color", QVector4D(1.0f, 0.0f, 0.0f, 1.0f)); // Red 
+			for (const auto& item : highlightItemList) {
+				for (const auto& line : item.itemEdgeList)
+				{
+
+					glBegin(GL_LINES);
+					glVertex2f(line.startX, line.startY);
+					glVertex2f(line.endX, line.endY);
+					glEnd();
+
+				}
+			}
+			
+			
+			for (const auto& point : it.intersectionPointList) {
+				float x1, x2, y1, y2;
+				
+				for (int i = 0; i < 36; i++)
+				{
+					
+					float theta = 2.0f * 3.14 * float(i) / float(36);
+
+					x1 = point.x - 0.025 * cos(theta);
+					y1 = point.y - 0.025 * sin(theta);
+
+					theta = 2.0f * 3.14 * float(i + 1) / float(36);
+					x2 = point.x - 0.025 * cos(theta);
+					y2 = point.y - 0.025 * sin(theta);
+					shaderProgram->bind();
+					shaderProgram->setUniformValue("color", QVector4D(0.0f, 1.0f, 1.0f, 1.0f)); // Red 
+					glBegin(GL_LINES);
+					glVertex2f(x1, y1);
+					glVertex2f(x2, y2);
+					glEnd();
+
+				}
+				
+			}
+			//db.highlightList.clear();
+			highlightMode = false;
+			it.intersectionPointList.clear();
+			//update();
+		}
 	shaderProgram->release();
 }
 
@@ -231,58 +275,7 @@ void OpenGLWindow::drawLine() {
 	OpenGLWindow::update();                                     // ** UPDATE (REDO) THE PAINTGL ** //
 }
 
-void OpenGLWindow::intersection() {
-
-	if (itemList.size() < 2) {
-
-		QMessageBox::information(this, "Insufficient Data", "Not Enough Items to Find Intersection");
-	}
-	else {
-
-		for (int i = 0; i < itemList.size(); i++) {
-
-			for (int j = 0; j < itemList.size(); j++) {
-
-				if (itemList[i].itemNumber == itemList[j].itemNumber && itemList[i].entityName == itemList[j].entityName) {
-
-					// ** Same Entity (SKIP IT)
-				}
-				else {
-
-					for each (DataBase::Edge edge in itemList[i].itemEdgeList)
-					{
-
-						for each (DataBase::Edge edge2 in itemList[j].itemEdgeList)
-						{
-
-							double slope1 = it.slopeFinder(edge);
-							double slope2 = it.slopeFinder(edge2);
-
-							int side, parallel, perpendicular;
-							side = it.sideIndicator(edge, edge2);
-							parallel = it.parallelCheck(edge, edge2);
-							perpendicular = it.perpendicularCheck(edge, edge2);
-
-							if (perpendicular == 1) {
-								it.intersectionFinder(edge, edge2);
-
-							}
-							else {
-								if (parallel == 1 || side == 0) {
-
-									// ** SKIP
-								}
-								else {
-
-									it.intersectionFinder(edge, edge2);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+void OpenGLWindow::renderIntersection() {
 
 	for (int j = 0; j < it.intersectionPointList.size(); j++)
 	{
@@ -299,6 +292,7 @@ void OpenGLWindow::intersection() {
 			float y2 = it.intersectionPointList[j].y - 0.05 * sin(theta);
 
 			DataBase::Item intersectionPoint;
+			intersectionPoint.entityName = "Intersection-Point";
 			intersectionPoint.startX = x1;
 			intersectionPoint.startY = y1;
 			intersectionPoint.endX = x2;
@@ -313,7 +307,13 @@ void OpenGLWindow::intersection() {
 
 void OpenGLWindow::reset() {
 	db.edgeList.clear();
+	db.highlightList.clear();
 	itemList.clear();
+	it.intersectionPointList.clear();
+	highlightItemList.clear();
+	lineCounter = 0;
+	rectangleCounter = 0;
+	circleCounter = 0;
 	OpenGLWindow::update();
 }
 

@@ -24,7 +24,7 @@ public:
 	void drawLine();
 	void drawCircle();
 	void drawRectangle();
-	void intersection();
+	void renderIntersection();
 	void reset();
 	void highlight();
 
@@ -37,6 +37,7 @@ public:
 	Intersection it;
 
 	std::vector<DataBase::Item>itemList;
+	std::vector<DataBase::Item>highlightItemList;
 
 	const char* vertexShaderSource =
 		"#version 330 core\n"

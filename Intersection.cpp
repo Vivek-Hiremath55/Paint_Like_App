@@ -6,10 +6,10 @@ double Intersection::slopeFinder(DataBase::Edge line) {
 	double slope;
 
 	if (line.endX != line.startX) {
-		slope = atan((line.endY - line.startY) / (line.endX - line.startX));
+		slope = ((line.endY - line.startY) / (line.endX - line.startX));
 	}
 	else {
-		slope = line.startY > line.endY ? PI / 2 : 3 * PI / 2;
+		slope = 1;
 	}
 
 	return slope;
@@ -52,43 +52,64 @@ int Intersection::sideIndicator(DataBase::Edge line1, DataBase::Edge line2) {
 
 void Intersection::intersectionFinder(DataBase::Edge line1, DataBase::Edge line2) {
 
-	// ** Line1 start point x1,y1 endpoint x2,y2
-	// ** Line2 start point x3,y3 endpoint x4,y4
-
 	double m1 = slopeFinder(line1);
 	double m2 = slopeFinder(line2);
 
 	double b1 = line1.startY - (m1 * line1.startX);
 	double b2 = line2.startY - (m2 * line2.startX);
 
-	double x = (b2 - b1) / (m1 - m2);
-	double y = (m1 * x) + b1;
+	double x, y;
+	x = (b2 - b1) / (m1 - m2);
+	y = (m1 * x) + b1;
+
+	if (m1 == 1) {
+		x = (b1 - b2) / (m2 - m1);
+		y = (m2 * x) + b2;
+	}
 
 	DataBase::Point intersectionPoint{};
 	intersectionPoint.x = x;
 	intersectionPoint.y = y;
-	px = x;
-	py = y;
+	
+	// Check Valididty 
+	// P = (1 - t) * P0 + (t * P1)                 -> P = P0 + t*(P1 - P0)
+	// t = (P - P0) / (P1 - P0)                    0 <= t <= 1
 
-	if (intersectionPointList.size() == 0) {
+	double u, v;
+	u = (x - line1.startX) / (line1.endX - line1.startX);
+	//if ((line1.endX - line1.startX) == 0) {
+	//	u = (y - line1.startY) / (line1.endY - line1.startY);
+	//}
 
-		intersectionPointList.push_back(intersectionPoint);
-	}
-	else {
+	v = (x - line2.startX) / (line2.endX - line2.startX);
+	//if ((line2.endX - line2.startX) == 0) {
+	//	v = (y - line2.startY) / (line2.endY - line2.startY);
+	//}
 
-		for each (DataBase::Point point in intersectionPointList)
-		{
 
-			if (point.x == intersectionPoint.x && point.y == intersectionPoint.y) {
+	if (0 <= u && u <= 1 && 0 <= v && v <= 1) {
+		if (intersectionPointList.size() == 0) {
 
-				// ** Repeated Point (SKIP)
-			}
-			else {
+			intersectionPointList.push_back(intersectionPoint);
+		}
+		else {
 
-				intersectionPointList.push_back(intersectionPoint);
+			for (const auto& point : intersectionPointList)
+			{
+
+				if (point.x == intersectionPoint.x && point.y == intersectionPoint.y) {
+
+					// ** Repeated Point (SKIP)
+				}
+				else {
+
+					intersectionPointList.push_back(intersectionPoint);
+				}
 			}
 		}
 	}
+
+	
 }
 
 int Intersection::parallelCheck(DataBase::Edge line1, DataBase::Edge line2) {
@@ -117,4 +138,14 @@ double Intersection::roundUP(double target) {
 	dummy = dummy + 0.5;
 	target = round(dummy) / 100000;
 	return target;
+}
+
+void Intersection::findIntersectionBetItems(DataBase::Item item1, DataBase::Item item2) {
+
+	for (const auto& line : item1.itemEdgeList) {
+		for (const auto& line2 : item2.itemEdgeList) {
+			
+			intersectionFinder(line, line2);
+		}
+	}
 }

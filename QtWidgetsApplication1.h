@@ -8,6 +8,7 @@
 #include <QThread>
 #include<QTimer>
 
+
 class QtWidgetsApplication1 : public QMainWindow
 {
     Q_OBJECT
@@ -22,6 +23,7 @@ public:
 private:
     Ui::QtWidgetsApplication1Class ui;
     OpenGLWindow* opWindow;
+    
     QTimer* timer;
     //void mousePressEvent(QMouseEvent* event) override;
 
