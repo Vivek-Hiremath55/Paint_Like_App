@@ -31,6 +31,6 @@ private slots:
     void createLine();
     void createCircle();
     void createRectangle();
-    void intersectionFinder();
+    void createPolyline();
     void resetFunction();
 };

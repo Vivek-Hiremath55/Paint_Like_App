@@ -27,6 +27,7 @@ public:
 	void renderIntersection();
 	void reset();
 	void highlight();
+	void drawPolyline();
 
 	OpenGLWindow(QWidget* parent = nullptr);
 

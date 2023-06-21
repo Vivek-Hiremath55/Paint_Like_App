@@ -16,12 +16,12 @@ QtWidgetsApplication1::QtWidgetsApplication1(QWidget* parent)
 	opWindow->setObjectName("myOpenGLWidget");
 
 
-	QPushButton* intersetionButton = new QPushButton("Intersection");
+	QPushButton* polylineButton = new QPushButton("PolyLine");
 	QPushButton* resetButton = new QPushButton("Reset");
 
 	ui.horizontalLayout->addWidget(ui.lineButton);
 	ui.horizontalLayout->addWidget(ui.rectangleButton);
-	ui.horizontalLayout->addWidget(intersetionButton);
+	ui.horizontalLayout->addWidget(polylineButton);
 	ui.horizontalLayout->addWidget(resetButton);
 	ui.horizontalLayout_2->addWidget(opWindow);
 
@@ -37,19 +37,27 @@ QtWidgetsApplication1::QtWidgetsApplication1(QWidget* parent)
 		button->setCheckable(true);
 	}
 
-	intersetionButton->setCheckable(false);
 	resetButton->setCheckable(false);
 
+	// ** Cosmetics ** //
 	ui.lineButton->setStyleSheet("QPushButton:pressed { background-color: gray; border: 3px;}");
 	ui.rectangleButton->setStyleSheet("QPushButton:pressed { background-color: gray; border: 3px;}");
 	ui.circleButton->setStyleSheet("QPushButton:pressed { background-color: gray; border: 3px;}");
 	resetButton->setStyleSheet("QPushButton:pressed { background-color: red; border: 3px;}");
-	intersetionButton->setStyleSheet("QPushButton:pressed { background-color: yellow; border: 3px;}");
+	polylineButton->setStyleSheet("QPushButton:pressed { background-color: yellow; border: 3px;}");
+	
+	ui.lineButton->setToolTip("Creates a Line Segment\n"
+		"Select 2 points on the canvas");
+	ui.rectangleButton->setToolTip("Creates a Rectangle\n" "Select 2 diagonally opposite points on the canvas");
+	ui.circleButton->setToolTip("Creates a Circle\n" "Select centre and the Radius on canvas");
+	resetButton->setToolTip("Resets the Canvas");
+	polylineButton->setToolTip("Creates a 4 Point Polyline ->\n"
+		"Select 4 points on the canvas");
 
 	connect(ui.lineButton, SIGNAL(clicked(void)), this, SLOT(createLine()));
 	connect(ui.circleButton, SIGNAL(clicked(void)), this, SLOT(createCircle()));
 	connect(ui.rectangleButton, SIGNAL(clicked(void)), this, SLOT(createRectangle()));
-	connect(intersetionButton, SIGNAL(clicked(void)), this, SLOT(intersectionFinder()));
+	connect(polylineButton, SIGNAL(clicked(void)), this, SLOT(createPolyline()));
 	connect(resetButton, SIGNAL(clicked(void)), this, SLOT(resetFunction()));
 
 	treeView->setSelectionMode(QAbstractItemView::MultiSelection);
@@ -185,8 +193,8 @@ void QtWidgetsApplication1::createRectangle() {
 	}
 }
 
-void QtWidgetsApplication1::intersectionFinder() {
-	opWindow->renderIntersection();
+void QtWidgetsApplication1::createPolyline() {
+	
 	model->clear();
 	for (const auto& line : opWindow->itemList) {
 		QString q = line.entityName + QString::number(line.itemNumber);
