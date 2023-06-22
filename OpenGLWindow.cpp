@@ -8,17 +8,27 @@
 int lineCounter = 0;
 int rectangleCounter = 0;
 int circleCounter = 0;
+int polylineCounter = 0;
+int polylineCounter2 = 0;
 
 
 float lineStartX = -0.0f;
 float lineStartY = -0.0f;
 float lineEndX = 0.0f;
 float lineEndY = 0.0f;
+
+double p1x = 0;
+double p1y = 0;
+double p2x = 0;
+double p2y = 0;
+
 bool isDrawingLine = false;
 bool OpenGLWindow::drawLineMode = false;
 bool OpenGLWindow::drawCircleMode = false;
 bool OpenGLWindow::drawRectangleMode = false;
 bool OpenGLWindow::highlightMode = false;
+bool OpenGLWindow::drawPolylineMode = false;
+bool OpenGLWindow::drawPolylineMode2 = false;
 
 OpenGLWindow::OpenGLWindow(QWidget* parent)
 	: QOpenGLWidget(parent)
@@ -113,7 +123,7 @@ void OpenGLWindow::paintGL()
 			}
 			//db.highlightList.clear();
 			highlightMode = false;
-			it.intersectionPointList.clear();
+			//it.intersectionPointList.clear();
 			//update();
 		}
 	shaderProgram->release();
@@ -161,6 +171,12 @@ void OpenGLWindow::mousePressEvent(QMouseEvent* event)
 		if (drawRectangleMode) {
 			drawRectangle();
 
+		}
+		if (drawPolylineMode) {
+			drawPolyline();
+		}
+		if (drawPolylineMode2) {
+			drawPolyline2();
 		}
 
 
@@ -314,6 +330,7 @@ void OpenGLWindow::reset() {
 	lineCounter = 0;
 	rectangleCounter = 0;
 	circleCounter = 0;
+	polylineCounter = 0;
 	OpenGLWindow::update();
 }
 
@@ -321,4 +338,91 @@ void OpenGLWindow::highlight() {
 
 	shaderProgram->setUniformValue("color", QVector4D(0.0f, 1.0f, 0.0f, 1.0f)); // Yellow color
 
+}
+
+void OpenGLWindow::drawPolyline2() {
+	polylineCounter2++;
+
+	
+	DataBase::Item polyline;
+
+	polyline.entityName = "Polyline(4->pt)";
+	polyline.itemNumber = polylineCounter2 / 4;
+
+	// ** 4 Points as input ** //
+	if (polylineCounter2 % 4 == 0) {
+		double i = 1.0 / 10.0;
+		for (double u = 0; u < 0.9; u += i)
+		{
+			double x = (p1x * pow((1 - u), 3)) + 3 * (p2x * (pow((1 - u), 2)) * (u)) + 3 * (lineStartX * (1 - u) * (pow((u), 2))) + (lineEndX * pow(u, 3));
+			double y = (p1y * pow((1 - u), 3)) + 3 * (p2y * (pow((1 - u), 2)) * (u)) + 3 * (lineStartY * (1 - u) * (pow((u), 2))) + (lineEndY * pow(u, 3));
+
+			double v = u + 0.1;
+			double x2 = (p1x * pow((1 - v), 3)) + 3 * (p2x * (pow((1 - v), 2)) * (v)) + 3 * (lineStartX * (1 - v) * (pow((v), 2))) + (lineEndX * pow(v, 3));
+			double y2 = (p1y * pow((1 - v), 3)) + 3 * (p2y * (pow((1 - v), 2)) * (v)) + 3 * (lineStartY * (1 - v) * (pow((v), 2))) + (lineEndY * pow(v, 3));
+
+			DataBase::Edge edge;
+			edge.startX = x;
+			edge.startY = y;
+			edge.endX = x2;
+			edge.endY = y2;
+
+			polyline.itemEdgeList.push_back(edge);
+			
+		}
+		itemList.push_back(polyline);
+		
+	}
+	else {
+		if (polylineCounter2 % 2 == 0 && polylineCounter2 % 4 != 0) {
+			p1x = lineStartX;
+			p1y = lineStartY;
+			p2x = lineEndX;
+			p2y = lineEndY;
+		}
+		
+	}
+	OpenGLWindow::update();
+}
+
+void OpenGLWindow::drawPolyline() {
+	polylineCounter++;
+
+
+	DataBase::Item polyline;
+
+	polyline.entityName = "Polyline";
+	polyline.itemNumber = polylineCounter / 3;
+
+	// ** 3 Points as input ** //
+	if (polylineCounter % 3 == 0) {
+		double i = 1.0 / 10.0;
+		for (double u = 0; u < 0.9; u += i)
+		{
+			double x = (p1x * pow((1 - u), 2)) + 2 * (p2x * (1 - u) * (u)) + (lineStartX * pow(u, 2));
+			double y = (p1y * pow((1 - u), 2)) + 2 * (p2y * (u) * (1 - u)) + (lineStartY * pow(u, 2));
+
+			double v = u + 0.1;
+			double x2 = (p1x * pow((1 - v), 2)) + 2 * (p2x * (1 - v) * (v)) + (lineStartX * pow(v, 2));
+			double y2 = (p1y * pow((1 - v), 2)) + 2 * (p2y * (v) * (1 - v)) + (lineStartY * pow(v, 2));
+
+			DataBase::Edge edge;
+			edge.startX = x;
+			edge.startY = y;
+			edge.endX = x2;
+			edge.endY = y2;
+
+			polyline.itemEdgeList.push_back(edge);
+
+		}
+		itemList.push_back(polyline);
+		isDrawingLine = false;
+	}
+	else {
+		p1x = lineStartX;
+		p1y = lineStartY;
+		p2x = lineEndX;
+		p2y = lineEndY;
+	}
+	OpenGLWindow::update();
 }

@@ -18,6 +18,8 @@ public:
 	static bool drawCircleMode;
 	static bool drawRectangleMode;
 	static bool highlightMode;
+	static bool drawPolylineMode;
+	static bool drawPolylineMode2;
 
 	void mousePressEvent(QMouseEvent* event) override;
 
@@ -28,6 +30,8 @@ public:
 	void reset();
 	void highlight();
 	void drawPolyline();
+	void drawPolyline2();
+
 
 	OpenGLWindow(QWidget* parent = nullptr);
 

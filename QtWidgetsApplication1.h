@@ -19,6 +19,8 @@ public:
     QTreeView* treeView = new QTreeView(this);
     QStandardItemModel* model = new QStandardItemModel(treeView);
     QThread* actionThread = new QThread();
+    QPushButton* polylineButton = new QPushButton("PolyLine->3pt");
+    QPushButton* polylineButton2 = new QPushButton("PolyLine->4pt");
 
 private:
     Ui::QtWidgetsApplication1Class ui;
@@ -32,5 +34,6 @@ private slots:
     void createCircle();
     void createRectangle();
     void createPolyline();
+    void createPolyline2();
     void resetFunction();
 };
